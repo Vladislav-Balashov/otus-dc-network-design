@@ -85,6 +85,7 @@ router ospf 1
 !
 end
 ```
+<br>
 
 ### spine2
 
@@ -137,6 +138,7 @@ router ospf 1
 !
 end
 ```
+<br>
 
 ### leaf1
 
@@ -181,6 +183,7 @@ router ospf 1
 !
 end
 ```
+<br>
 
 ### leaf2
 
@@ -225,6 +228,7 @@ router ospf 1
 !
 end
 ```
+<br>
 
 ### leaf3
 
@@ -269,7 +273,6 @@ router ospf 1
 !
 end
 ```
-
 <br>
 
 ### 3. Проверка связности
