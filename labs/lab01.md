@@ -289,6 +289,8 @@ PING 10.1.0.2 (10.1.0.2) from 10.1.0.1 : 72(100) bytes of data.
 rtt min/avg/max/mdev = 4.174/6.696/13.553/3.459 ms, ipg/ewma 12.643/9.986 ms
 ```
 
+<br>
+
 ### spine1 to leaf1
 ```
 spine1#ping 10.1.0.3 source 10.1.0.1
@@ -304,6 +306,7 @@ PING 10.1.0.3 (10.1.0.3) from 10.1.0.1 : 72(100) bytes of data.
 rtt min/avg/max/mdev = 1.787/3.228/6.795/1.843 ms, ipg/ewma 8.413/4.930 ms
 ```
 
+<br>
 
 ### spine1 to leaf2
 ```
@@ -320,6 +323,7 @@ PING 10.1.0.4 (10.1.0.4) from 10.1.0.1 : 72(100) bytes of data.
 rtt min/avg/max/mdev = 1.705/2.525/5.279/1.381 ms, ipg/ewma 5.065/3.848 ms
 ```
 
+<br>
 
 ### spine1 to leaf3
 ```
@@ -336,6 +340,7 @@ PING 10.1.0.5 (10.1.0.5) from 10.1.0.1 : 72(100) bytes of data.
 rtt min/avg/max/mdev = 2.116/2.770/4.981/1.110 ms, ipg/ewma 5.025/3.836 ms
 ```
 
+<br>
 
 ### spine2 to leaf1
 ```
@@ -353,6 +358,8 @@ rtt min/avg/max/mdev = 1.830/4.697/7.057/2.029 ms, ipg/ewma 7.688/5.768 ms
 
 ```
 
+<br>
+
 ### spine2 to leaf2
 ```
 spine2#ping 10.1.0.4 source 10.1.0.2
@@ -368,6 +375,7 @@ PING 10.1.0.4 (10.1.0.4) from 10.1.0.2 : 72(100) bytes of data.
 rtt min/avg/max/mdev = 1.639/2.967/6.937/2.004 ms, ipg/ewma 6.451/4.869 ms
 ```
 
+<br>
 
 ### spine2 to leaf3
 ```
