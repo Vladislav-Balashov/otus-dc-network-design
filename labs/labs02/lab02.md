@@ -32,6 +32,7 @@
 | `10.1.16.10/31` | **spine2** Ethernet3             | `10.1.16.10` | **leaf3** Ethernet2             | `10.1.16.11` |
 
 <br>
+
 ### 2. Конфигурации устройств (Arista vEOS)
 ### spine1
 
@@ -88,6 +89,7 @@ router ospf 1
 !
 end
 ```
+<br>
 
 ### spine2
 
@@ -144,6 +146,7 @@ router ospf 1
 !
 end
 ```
+<br>
 
 ### leaf1
 
@@ -191,6 +194,7 @@ router ospf 1
 !
 end
 ```
+<br>
 
 ### leaf2
 
@@ -238,6 +242,7 @@ router ospf 1
 !
 end
 ```
+<br>
 
 ### leaf3
 
@@ -286,6 +291,7 @@ router ospf 1
 end
 ```
 
+<br>
 
 ### 3. Проверка OSPF и L3-связности
 
@@ -298,6 +304,8 @@ Neighbor ID     Instance VRF      Pri State                  Dead Time   Address
 10.1.0.4        1        default  0   FULL                   00:00:34    10.1.16.3       Ethernet2
 10.1.0.5        1        default  0   FULL                   00:00:38    10.1.16.5       Ethernet3
 ```
+
+<br>
 
 ### spine1 to spine2
 ```
@@ -313,6 +321,7 @@ PING 10.1.0.2 (10.1.0.2) from 10.1.0.1 : 72(100) bytes of data.
 5 packets transmitted, 5 received, 0% packet loss, time 87ms
 rtt min/avg/max/mdev = 4.050/9.410/26.372/8.579 ms, pipe 2, ipg/ewma 21.874/17.528 ms
 ```
+<br>
 
 ### spine1 to leaf1
 ```
@@ -329,6 +338,7 @@ PING 10.1.0.3 (10.1.0.3) from 10.1.0.1 : 72(100) bytes of data.
 rtt min/avg/max/mdev = 1.766/2.699/3.991/1.054 ms, ipg/ewma 4.354/3.368 ms
 ```
 
+<br>
 
 ### spine1 to leaf2
 ```
@@ -345,6 +355,7 @@ PING 10.1.0.4 (10.1.0.4) from 10.1.0.1 : 72(100) bytes of data.
 rtt min/avg/max/mdev = 1.533/2.481/5.746/1.636 ms, ipg/ewma 5.381/4.055 ms
 ```
 
+<br>
 
 ### spine1 to leaf3
 ```
@@ -374,6 +385,7 @@ Neighbor ID     Instance VRF      Pri State                  Dead Time   Address
 ```
 
 <br>
+
 ### spine2 to leaf1
 ```
 spine2#ping 10.1.0.3 source 10.1.0.2
@@ -388,6 +400,7 @@ PING 10.1.0.3 (10.1.0.3) from 10.1.0.2 : 72(100) bytes of data.
 5 packets transmitted, 5 received, 0% packet loss, time 17ms
 rtt min/avg/max/mdev = 1.433/2.046/3.947/0.955 ms, ipg/ewma 4.251/2.958 ms
 ```
+<br>
 
 ### spine2 to leaf2
 ```
@@ -404,6 +417,7 @@ PING 10.1.0.4 (10.1.0.4) from 10.1.0.2 : 72(100) bytes of data.
 rtt min/avg/max/mdev = 1.603/2.147/3.935/0.898 ms, ipg/ewma 5.040/3.008 ms
 ```
 
+<br>
 
 ### spine2 to leaf3
 ```
