@@ -32,8 +32,11 @@
 | `10.1.16.6/31`  | **spine2** Ethernet1             | `10.1.16.6`  | **leaf1** Ethernet2             | `10.1.16.7`  |
 | `10.1.16.8/31`  | **spine2** Ethernet2             | `10.1.16.8`  | **leaf2** Ethernet2             | `10.1.16.9`  |
 | `10.1.16.10/31` | **spine2** Ethernet3             | `10.1.16.10` | **leaf3** Ethernet2             | `10.1.16.11` |
+
 <br>
+
 ### 2. Конфигурации устройств (Arista vEOS)
+
 ### spine1
 
 ```
@@ -90,8 +93,8 @@ router multicast
 !
 end
 ```
-
 <br>
+
 ### spine2
 
 ```
@@ -147,8 +150,8 @@ router multicast
 !
 end
 ```
-
 <br>
+
 ### leaf1
 
 ```
@@ -195,8 +198,8 @@ router multicast
 !
 end
 ```
-
 <br>
+
 ### leaf2
 
 ```
@@ -243,8 +246,8 @@ router multicast
 !
 end
 ```
-
 <br>
+
 ### leaf3
 
 ```
@@ -291,8 +294,8 @@ router multicast
 !
 end
 ```
-
 <br>
+
 ### 3. Проверка IS-IS и L3-связности
 
 ### spine1 neighbors
@@ -307,7 +310,9 @@ CORE      default  leaf3            L1   Ethernet3          P2P               UP
 ```
 
 <br>
+
 ### spine1 to spine2
+
 ```
 spine1#ping 10.1.0.2 source 10.1.0.1
 PING 10.1.0.2 (10.1.0.2) from 10.1.0.1 : 72(100) bytes of data.
@@ -323,7 +328,9 @@ rtt min/avg/max/mdev = 4.005/5.671/9.142/1.829 ms, ipg/ewma 12.245/7.357 ms
 ```
 
 <br>
+
 ### spine1 to leaf1
+
 ```
 spine1#ping 10.1.0.3 source 10.1.0.1
 PING 10.1.0.3 (10.1.0.3) from 10.1.0.1 : 72(100) bytes of data.
@@ -339,7 +346,9 @@ rtt min/avg/max/mdev = 1.827/2.662/3.735/0.870 ms, ipg/ewma 6.769/3.148 ms
 ```
 
 <br>
+
 ### spine1 to leaf2
+
 ```
 spine1#ping 10.1.0.4 source 10.1.0.1
 PING 10.1.0.4 (10.1.0.4) from 10.1.0.1 : 72(100) bytes of data.
@@ -355,7 +364,9 @@ rtt min/avg/max/mdev = 1.951/3.198/7.361/2.094 ms, ipg/ewma 7.941/5.219 ms
 ```
 
 <br>
+
 ### spine1 to leaf3
+
 ```
 spine1#ping 10.1.0.5 source 10.1.0.1
 PING 10.1.0.5 (10.1.0.5) from 10.1.0.1 : 72(100) bytes of data.
@@ -371,6 +382,7 @@ rtt min/avg/max/mdev = 2.141/3.254/6.736/1.751 ms, ipg/ewma 6.506/4.948 ms
 ```
 
 <br>
+
 ### spine2 neighbors
 
 ```
@@ -385,6 +397,7 @@ CORE      default  leaf3            L1   Ethernet3          P2P               UP
 <br>
 
 ### spine2 to leaf1
+
 ```
 spine2#ping 10.1.0.3 source 10.1.0.2
 PING 10.1.0.3 (10.1.0.3) from 10.1.0.2 : 72(100) bytes of data.
@@ -400,7 +413,9 @@ rtt min/avg/max/mdev = 1.801/3.154/7.868/2.358 ms, ipg/ewma 7.462/5.426 ms
 ```
 
 <br>
+
 ### spine2 to leaf2
+
 ```
 spine2#ping 10.1.0.4 source 10.1.0.2
 PING 10.1.0.4 (10.1.0.4) from 10.1.0.2 : 72(100) bytes of data.
@@ -416,7 +431,9 @@ rtt min/avg/max/mdev = 2.170/2.879/4.630/0.893 ms, ipg/ewma 5.028/3.712 ms
 ```
 
 <br>
+
 ### spine2 to leaf3
+
 ```
 spine2#ping 10.1.0.5 source 10.1.0.2
 PING 10.1.0.5 (10.1.0.5) from 10.1.0.2 : 72(100) bytes of data.
