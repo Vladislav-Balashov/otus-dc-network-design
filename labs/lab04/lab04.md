@@ -496,3 +496,133 @@ PING 10.1.0.5 (10.1.0.5) from 10.1.0.4 : 72(100) bytes of data.
 5 packets transmitted, 5 received, 0% packet loss, time 32ms
 rtt min/avg/max/mdev = 3.321/4.590/8.006/1.724 ms, ipg/ewma 8.047/6.236 ms
 ```
+
+<br>
+
+
+### leaf1 routing table
+
+```
+leaf1#show ip route
+
+VRF: default
+Source Codes:
+       C - connected, S - static, K - kernel,
+       O - OSPF, IA - OSPF inter area, E1 - OSPF external type 1,
+       E2 - OSPF external type 2, N1 - OSPF NSSA external type 1,
+       N2 - OSPF NSSA external type2, B - Other BGP Routes,
+       B I - iBGP, B E - eBGP, R - RIP, I L1 - IS-IS level 1,
+       I L2 - IS-IS level 2, O3 - OSPFv3, A B - BGP Aggregate,
+       A O - OSPF Summary, NG - Nexthop Group Static Route,
+       V - VXLAN Control Service, M - Martian,
+       DH - DHCP client installed default route,
+       DP - Dynamic Policy Route, L - VRF Leaked,
+       G  - gRIBI, RC - Route Cache Route,
+       CL - CBF Leaked Route
+
+Gateway of last resort is not set
+
+ B E      10.1.0.1/32 [200/0]
+           via 10.1.16.0, Ethernet1
+ B E      10.1.0.2/32 [200/0]
+           via 10.1.16.6, Ethernet2
+ C        10.1.0.3/32
+           directly connected, Loopback0
+ B E      10.1.0.4/32 [200/0]
+           via 10.1.16.0, Ethernet1
+           via 10.1.16.6, Ethernet2
+ B E      10.1.0.5/32 [200/0]
+           via 10.1.16.0, Ethernet1
+           via 10.1.16.6, Ethernet2
+ C        10.1.16.0/31
+           directly connected, Ethernet1
+ C        10.1.16.6/31
+           directly connected, Ethernet2
+```
+
+
+<br>
+
+
+### leaf2 routing table
+
+```
+leaf2#show ip route
+
+VRF: default
+Source Codes:
+       C - connected, S - static, K - kernel,
+       O - OSPF, IA - OSPF inter area, E1 - OSPF external type 1,
+       E2 - OSPF external type 2, N1 - OSPF NSSA external type 1,
+       N2 - OSPF NSSA external type2, B - Other BGP Routes,
+       B I - iBGP, B E - eBGP, R - RIP, I L1 - IS-IS level 1,
+       I L2 - IS-IS level 2, O3 - OSPFv3, A B - BGP Aggregate,
+       A O - OSPF Summary, NG - Nexthop Group Static Route,
+       V - VXLAN Control Service, M - Martian,
+       DH - DHCP client installed default route,
+       DP - Dynamic Policy Route, L - VRF Leaked,
+       G  - gRIBI, RC - Route Cache Route,
+       CL - CBF Leaked Route
+
+Gateway of last resort is not set
+
+ B E      10.1.0.1/32 [200/0]
+           via 10.1.16.2, Ethernet1
+ B E      10.1.0.2/32 [200/0]
+           via 10.1.16.8, Ethernet2
+ B E      10.1.0.3/32 [200/0]
+           via 10.1.16.2, Ethernet1
+           via 10.1.16.8, Ethernet2
+ C        10.1.0.4/32
+           directly connected, Loopback0
+ B E      10.1.0.5/32 [200/0]
+           via 10.1.16.2, Ethernet1
+           via 10.1.16.8, Ethernet2
+ C        10.1.16.2/31
+           directly connected, Ethernet1
+ C        10.1.16.8/31
+           directly connected, Ethernet2
+```
+
+<br>
+
+
+### leaf3 routing table
+
+```
+leaf3#show ip route
+
+VRF: default
+Source Codes:
+       C - connected, S - static, K - kernel,
+       O - OSPF, IA - OSPF inter area, E1 - OSPF external type 1,
+       E2 - OSPF external type 2, N1 - OSPF NSSA external type 1,
+       N2 - OSPF NSSA external type2, B - Other BGP Routes,
+       B I - iBGP, B E - eBGP, R - RIP, I L1 - IS-IS level 1,
+       I L2 - IS-IS level 2, O3 - OSPFv3, A B - BGP Aggregate,
+       A O - OSPF Summary, NG - Nexthop Group Static Route,
+       V - VXLAN Control Service, M - Martian,
+       DH - DHCP client installed default route,
+       DP - Dynamic Policy Route, L - VRF Leaked,
+       G  - gRIBI, RC - Route Cache Route,
+       CL - CBF Leaked Route
+
+Gateway of last resort is not set
+
+ B E      10.1.0.1/32 [200/0]
+           via 10.1.16.4, Ethernet1
+ B E      10.1.0.2/32 [200/0]
+           via 10.1.16.10, Ethernet2
+ B E      10.1.0.3/32 [200/0]
+           via 10.1.16.4, Ethernet1
+           via 10.1.16.10, Ethernet2
+ B E      10.1.0.4/32 [200/0]
+           via 10.1.16.4, Ethernet1
+           via 10.1.16.10, Ethernet2
+ C        10.1.0.5/32
+           directly connected, Loopback0
+ C        10.1.16.4/31
+           directly connected, Ethernet1
+ C        10.1.16.10/31
+           directly connected, Ethernet2
+```
