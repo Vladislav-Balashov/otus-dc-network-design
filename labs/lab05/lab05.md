@@ -319,6 +319,7 @@ interface Ethernet12
 !
 interface Loopback0
    ip address 10.1.0.4/32
+   ip ospf area 0.0.0.0
 !
 interface Vxlan1
    vxlan source-interface Loopback0
@@ -403,6 +404,11 @@ interface Ethernet11
 interface Loopback0
    ip address 10.1.0.5/32
    ip ospf area 0.0.0.0
+!
+interface Vxlan1
+   vxlan source-interface Loopback0
+   vxlan udp-port 4789
+   vxlan vlan 10 vni 10010
 !
 ip routing
 !
@@ -765,7 +771,6 @@ Neighbor Status Codes: m - Under maintenance
 
 <br>
 
-
 ### leaf3 route type 2
 
 ```
@@ -790,8 +795,8 @@ AS Path Attributes: Or-ID - Originator ID, C-LST - Cluster List, LL Nexthop - Li
                                  -                     -       -       0       i
 ```
 
-<br>
 
+<br>
 
 ### leaf3 route type 3
 
@@ -819,7 +824,6 @@ AS Path Attributes: Or-ID - Originator ID, C-LST - Cluster List, LL Nexthop - Li
 
 <br>
 
-
 ### leaf3 vteps
 
 ```
@@ -836,7 +840,6 @@ Total number of remote VTEPS:  2
 
 
 <br>
-
 
 ### client1 ping test
 
@@ -870,7 +873,6 @@ client1> ping 10.1.50.30 -c 4
 
 <br>
 
-
 ### client2 ping test
 
 ```
@@ -903,7 +905,6 @@ client2> ping 10.1.50.30 -c 4
 
 
 <br>
-
 
 ### client3 ping test
 
