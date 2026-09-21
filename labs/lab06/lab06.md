@@ -472,7 +472,7 @@ router bgp 65000
    !
    vlan 30
       rd 10.1.0.5:10030
-      route-target both 65000:10010
+      route-target both 65000:10030
       redistribute learned
    !
    address-family evpn
