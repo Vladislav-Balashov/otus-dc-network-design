@@ -1104,5 +1104,47 @@ trace to 10.1.60.10, 8 hops max, press Ctrl+C to stop
  2   192.168.200.1   5.082 ms  4.139 ms  2.693 ms
  3   192.168.100.0   3.978 ms  3.642 ms  3.507 ms
  4   *10.1.60.10   7.645 ms (ICMP type:3, code:3, Destination port unreachable)
+```
 
+
+<br>
+
+
+### router1 config
+
+```
+/interface ethernet
+set [ find default-name=ether1 ] disable-running-check=no
+set [ find default-name=ether2 ] disable-running-check=no
+set [ find default-name=ether3 ] disable-running-check=no
+set [ find default-name=ether4 ] disable-running-check=no
+set [ find default-name=ether5 ] disable-running-check=no
+set [ find default-name=ether6 ] disable-running-check=no
+set [ find default-name=ether7 ] disable-running-check=no
+set [ find default-name=ether8 ] disable-running-check=no
+/port
+set 0 name=serial0
+/routing bgp instance
+add as=65500 disabled=no name=bgp-instance-1 router-id=192.168.100.1
+/ip address
+add address=192.168.100.1/31 interface=ether1 network=192.168.100.0
+add address=172.31.99.150/24 interface=ether8 network=172.31.99.0
+add address=192.168.200.1/31 interface=ether2 network=192.168.200.0
+/ip firewall address-list
+add address=9.9.9.9 list=bgp-networks
+add address=8.8.8.8 list=bgp-networks
+/ip firewall nat
+add action=masquerade chain=srcnat out-interface=ether8
+/ip route
+add dst-address=8.8.8.8/32 gateway=172.31.99.254
+add dst-address=9.9.9.9/32 gateway=172.31.99.254
+/routing bgp connection
+add as=65500 connect=yes instance=bgp-instance-1 listen=yes local.address=\
+    192.168.100.1 .role=ebgp name=bgp1 output.as-override=yes .network=\
+    bgp-networks .redistribute=bgp remote.address=192.168.100.0/32 .as=65000
+add as=65500 connect=yes instance=bgp-instance-1 listen=yes local.address=\
+    192.168.200.1 .role=ebgp name=bgp2 output.as-override=yes .network=\
+    bgp-networks .redistribute=bgp remote.address=192.168.200.0/32 .as=65000
+/system identity
+set name=router1
 ```
