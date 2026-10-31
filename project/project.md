@@ -79,7 +79,6 @@
 <br>
 
 ## Конфигурации устройств (VyOS)
----
 
 #### spine-1
 
@@ -708,10 +707,7 @@ set system syslog global facility local7 level 'debug'
 
 <br>
 
-## Проверка работы EVPN-VXLAN фабрики
----
-
-## Underlay
+## Проверка работы EVPN-VXLAN фабрики (Underlay)
 
 ### 1. Проверка IPv6
 
@@ -1198,9 +1194,9 @@ rtt min/avg/max/mdev = 2.311/2.691/3.483/0.463 ms
 <br>
 
 
-## Overlay
+## ## Проверка работы EVPN-VXLAN фабрики (Overlay)
 
-### 1. Проверка eBGP EVPN
+### 1. Проверка BGP EVPN
 
 #### spine-1
 
@@ -1959,7 +1955,6 @@ MAC               Type   Flags Intf/Remote ES/VTEP            VLAN  Seq #'s
 
 
 ## Связность между клиентами
----
 
 #### client-1
 
