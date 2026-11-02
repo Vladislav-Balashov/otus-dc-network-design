@@ -20,7 +20,7 @@
 ## Cхема сети
 
 
-![EVPN-VXLAN topology](./vyos-evpn-vxlan.drawio.svg)
+![EVPN-VXLAN topology](./vyos-evpn.drawio.svg)
 
 
 <br>
