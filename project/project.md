@@ -2242,6 +2242,12 @@ client-4> trace 10.0.200.2
 trace to 10.0.200.2, 8 hops max, press Ctrl+C to stop
  1   10.0.100.254   0.765 ms  0.564 ms  0.492 ms
  2   *10.0.200.2   1.005 ms (ICMP type:3, code:3, Destination port unreachable)
+ 
+client-4> show arp
+
+00:50:79:66:68:00  10.0.100.1 expires in 110 seconds 
+00:50:79:66:68:04  10.0.100.2 expires in 113 seconds 
+02:00:00:00:01:00  10.0.100.254 expires in 116 seconds 
 ```
 
 
