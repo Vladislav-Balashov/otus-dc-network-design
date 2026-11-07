@@ -20,8 +20,8 @@
 ## Cхема сети
 
 
-![EVPN-VXLAN topology](./vyos-evpn.drawio.svg)
 
+![EVPN-VXLAN topology](./vyos-evpn.drawio.svg)
 
 <br>
 
@@ -313,10 +313,12 @@ set system syslog global facility local7 level 'debug'
 
 ```
 set interfaces bridge br100 address '10.0.100.254/24'
+set interfaces bridge br100 ip enable-arp-accept
 set interfaces bridge br100 mac '02:00:00:00:01:00'
 set interfaces bridge br100 member interface eth2
 set interfaces bridge br100 member interface vxlan100
 set interfaces bridge br200 address '10.0.200.254/24'
+set interfaces bridge br200 ip enable-arp-accept
 set interfaces bridge br200 mac '02:00:00:00:02:00'
 set interfaces bridge br200 member interface eth3
 set interfaces bridge br200 member interface vxlan200
@@ -449,9 +451,14 @@ set system syslog global facility local7 level 'debug'
 
 ```
 set interfaces bridge br100 address '10.0.100.254/24'
+set interfaces bridge br100 ip enable-arp-accept
 set interfaces bridge br100 mac '02:00:00:00:01:00'
 set interfaces bridge br100 member interface eth2
 set interfaces bridge br100 member interface vxlan100
+set interfaces bridge br200 address '10.0.200.254/24'
+set interfaces bridge br200 ip enable-arp-accept
+set interfaces bridge br200 mac '02:00:00:00:02:00'
+set interfaces bridge br200 member interface vxlan200
 set interfaces ethernet eth0 description 'to spine-1'
 set interfaces ethernet eth0 evpn
 set interfaces ethernet eth0 hw-id '0c:c8:34:5c:00:00'
@@ -532,6 +539,11 @@ set interfaces vxlan vxlan100 parameters nolearning
 set interfaces vxlan vxlan100 port '4789'
 set interfaces vxlan vxlan100 source-address '10.0.0.4'
 set interfaces vxlan vxlan100 vni '100'
+set interfaces vxlan vxlan200 mtu '9000'
+set interfaces vxlan vxlan200 parameters nolearning
+set interfaces vxlan vxlan200 port '4789'
+set interfaces vxlan vxlan200 source-address '10.0.0.4'
+set interfaces vxlan vxlan200 vni '200'
 set protocols bgp address-family ipv4-unicast redistribute connected
 set protocols bgp address-family l2vpn-evpn advertise-all-vni
 set protocols bgp neighbor eth0 interface v6only peer-group 'spine'
@@ -562,8 +574,7 @@ set service router-advert interface eth1
 set system config-management commit-revisions '100'
 set system console device ttyS0 speed '115200'
 set system host-name 'leaf-2'
-set system login user vyos authentication encrypted-password '$6$rounds=656
-WHiRtqG3EUM7.yu$nnV/4YLuSFG40Kdza2kBx3pSV1XLQzn34jmKIcv1YBQ0a05rWfWyE5UYD7aAbAZeTJuUj5sMO.ioFmODvfUkx.'
+set system login user vyos authentication encrypted-password '$6$rounds=656000$cWHiRtqG3EUM7.yu$nnV/4YLuSFG40Kdza2kBx3pSV1XLQzn34jmKIcv1YBQ0a05rWfWyE5UYD7aAbAZeTJuUj5sMO.ioFmODvfUkx.'
 set system login user vyos authentication plaintext-password ''
 set system syslog global facility all level 'info'
 set system syslog global facility local7 level 'debug'
@@ -576,10 +587,12 @@ set system syslog global facility local7 level 'debug'
 
 ```
 set interfaces bridge br100 address '10.0.100.254/24'
+set interfaces bridge br100 ip enable-arp-accept
 set interfaces bridge br100 mac '02:00:00:00:01:00'
 set interfaces bridge br100 member interface eth2
 set interfaces bridge br100 member interface vxlan100
 set interfaces bridge br200 address '10.0.200.254/24'
+set interfaces bridge br200 ip enable-arp-accept
 set interfaces bridge br200 mac '02:00:00:00:02:00'
 set interfaces bridge br200 member interface eth3
 set interfaces bridge br200 member interface vxlan200
@@ -786,19 +799,19 @@ fe80::efd:21ff:fec2:1  eth1         0c:fd:21:c2:00:01     STALE
 #### spine-1
 
 ```
-vyos@spine-1:~$ show ip bgp summary 
+vyos@spine-1:~$ show ip bgp summary
 
 IPv4 Unicast Summary (VRF default):
 BGP router identifier 10.0.0.1, local AS number 65000 vrf-id 0
-BGP table version 18
+BGP table version 23
 RIB entries 11, using 1056 bytes of memory
 Peers 3, using 60 KiB of memory
 Peer groups 1, using 64 bytes of memory
 
 Neighbor        V         AS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc
-eth0            4      65001      2460      2457       18    0    0 01:41:00            3        6 N/A
-eth1            4      65002      2469      2465       18    0    0 01:41:00            2        6 N/A
-eth2            4      65003      2459      2457       18    0    0 01:41:00            3        6 N/A
+eth0            4      65001      1477      1473       23    0    0 00:40:14            3        6 N/A
+eth1            4      65002      1474      1474       23    0    0 00:40:01            3        6 N/A
+eth2            4      65003      1481      1480       23    0    0 00:39:51            3        6 N/A
 
 Total number of neighbors 3
 vyos@spine-1:~$ show ip route bgp
@@ -809,14 +822,15 @@ Codes: K - kernel route, C - connected, S - static, R - RIP,
        > - selected route, * - FIB route, q - queued, r - rejected, b - backup
        t - trapped, o - offload failure
 
-B>* 10.0.0.3/32 [20/0] via fe80::e99:55ff:fe40:0, eth0, weight 1, 01:41:04
-B>* 10.0.0.4/32 [20/0] via fe80::ec8:34ff:fe5c:0, eth1, weight 1, 01:41:04
-B>* 10.0.0.5/32 [20/0] via fe80::efd:21ff:fec2:0, eth2, weight 1, 01:41:04
-B>* 10.0.100.0/24 [20/0] via fe80::e99:55ff:fe40:0, eth0, weight 1, 01:41:04
-  *                      via fe80::ec8:34ff:fe5c:0, eth1, weight 1, 01:41:04
-  *                      via fe80::efd:21ff:fec2:0, eth2, weight 1, 01:41:04
-B>* 10.0.200.0/24 [20/0] via fe80::e99:55ff:fe40:0, eth0, weight 1, 01:41:04
-  *                      via fe80::efd:21ff:fec2:0, eth2, weight 1, 01:41:04
+B>* 10.0.0.3/32 [20/0] via fe80::e99:55ff:fe40:0, eth0, weight 1, 00:40:24
+B>* 10.0.0.4/32 [20/0] via fe80::ec8:34ff:fe5c:0, eth1, weight 1, 00:40:11
+B>* 10.0.0.5/32 [20/0] via fe80::efd:21ff:fec2:0, eth2, weight 1, 00:40:01
+B>* 10.0.100.0/24 [20/0] via fe80::e99:55ff:fe40:0, eth0, weight 1, 00:40:01
+  *                      via fe80::ec8:34ff:fe5c:0, eth1, weight 1, 00:40:01
+  *                      via fe80::efd:21ff:fec2:0, eth2, weight 1, 00:40:01
+B>* 10.0.200.0/24 [20/0] via fe80::e99:55ff:fe40:0, eth0, weight 1, 00:20:37
+  *                      via fe80::ec8:34ff:fe5c:0, eth1, weight 1, 00:20:37
+  *                      via fe80::efd:21ff:fec2:0, eth2, weight 1, 00:20:37
 ```
 
 
@@ -825,19 +839,19 @@ B>* 10.0.200.0/24 [20/0] via fe80::e99:55ff:fe40:0, eth0, weight 1, 01:41:04
 #### spine-2
 
 ```
-vyos@spine-2:~$ show ip bgp summary 
+vyos@spine-2:~$ show ip bgp summary
 
 IPv4 Unicast Summary (VRF default):
 BGP router identifier 10.0.0.2, local AS number 65000 vrf-id 0
-BGP table version 18
+BGP table version 22
 RIB entries 11, using 1056 bytes of memory
 Peers 3, using 60 KiB of memory
 Peer groups 1, using 64 bytes of memory
 
 Neighbor        V         AS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc
-eth0            4      65001      2528      2524       18    0    0 01:44:26            3        6 N/A
-eth1            4      65002      2541      2535       18    0    0 01:44:26            2        6 N/A
-eth2            4      65003      2539      2533       18    0    0 01:44:26            3        6 N/A
+eth0            4      65001      1503      1500       22    0    0 00:41:39            3        6 N/A
+eth1            4      65002      1515      1512       22    0    0 00:41:27            3        6 N/A
+eth2            4      65003      1511      1508       22    0    0 00:41:18            3        6 N/A
 
 Total number of neighbors 3
 vyos@spine-2:~$ show ip route bgp
@@ -848,14 +862,15 @@ Codes: K - kernel route, C - connected, S - static, R - RIP,
        > - selected route, * - FIB route, q - queued, r - rejected, b - backup
        t - trapped, o - offload failure
 
-B>* 10.0.0.3/32 [20/0] via fe80::e99:55ff:fe40:1, eth0, weight 1, 01:44:38
-B>* 10.0.0.4/32 [20/0] via fe80::ec8:34ff:fe5c:1, eth1, weight 1, 01:44:38
-B>* 10.0.0.5/32 [20/0] via fe80::efd:21ff:fec2:1, eth2, weight 1, 01:44:38
-B>* 10.0.100.0/24 [20/0] via fe80::e99:55ff:fe40:1, eth0, weight 1, 01:44:38
-  *                      via fe80::ec8:34ff:fe5c:1, eth1, weight 1, 01:44:38
-  *                      via fe80::efd:21ff:fec2:1, eth2, weight 1, 01:44:38
-B>* 10.0.200.0/24 [20/0] via fe80::e99:55ff:fe40:1, eth0, weight 1, 01:44:38
-  *                      via fe80::efd:21ff:fec2:1, eth2, weight 1, 01:44:38
+B>* 10.0.0.3/32 [20/0] via fe80::e99:55ff:fe40:1, eth0, weight 1, 00:41:45
+B>* 10.0.0.4/32 [20/0] via fe80::ec8:34ff:fe5c:1, eth1, weight 1, 00:41:33
+B>* 10.0.0.5/32 [20/0] via fe80::efd:21ff:fec2:1, eth2, weight 1, 00:41:24
+B>* 10.0.100.0/24 [20/0] via fe80::e99:55ff:fe40:1, eth0, weight 1, 00:41:24
+  *                      via fe80::ec8:34ff:fe5c:1, eth1, weight 1, 00:41:24
+  *                      via fe80::efd:21ff:fec2:1, eth2, weight 1, 00:41:24
+B>* 10.0.200.0/24 [20/0] via fe80::e99:55ff:fe40:1, eth0, weight 1, 00:22:04
+  *                      via fe80::ec8:34ff:fe5c:1, eth1, weight 1, 00:22:04
+  *                      via fe80::efd:21ff:fec2:1, eth2, weight 1, 00:22:04
 ```
 
 
@@ -865,18 +880,18 @@ B>* 10.0.200.0/24 [20/0] via fe80::e99:55ff:fe40:1, eth0, weight 1, 01:44:38
 #### leaf-1
 
 ```
-vyos@leaf-1:~$ show ip bgp summary 
+vyos@leaf-1:~$ show ip bgp summary
 
 IPv4 Unicast Summary (VRF default):
 BGP router identifier 10.0.0.3, local AS number 65001 vrf-id 0
-BGP table version 17
+BGP table version 9
 RIB entries 13, using 1248 bytes of memory
 Peers 2, using 40 KiB of memory
 Peer groups 1, using 64 bytes of memory
 
 Neighbor        V         AS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc
-eth0            4      65000      2558      2566       17    0    0 01:45:58            3        7 N/A
-eth1            4      65000      2557      2564       17    0    0 01:45:58            3        7 N/A
+eth0            4      65000       882       885        9    0    0 00:42:27            3        7 N/A
+eth1            4      65000       881       886        9    0    0 00:42:21            3        7 N/A
 
 Total number of neighbors 2
 vyos@leaf-1:~$ show ip route bgp
@@ -887,12 +902,12 @@ Codes: K - kernel route, C - connected, S - static, R - RIP,
        > - selected route, * - FIB route, q - queued, r - rejected, b - backup
        t - trapped, o - offload failure
 
-B>* 10.0.0.1/32 [20/0] via fe80::eb2:c8ff:fe09:0, eth0, weight 1, 01:46:05
-B>* 10.0.0.2/32 [20/0] via fe80::e42:b9ff:fe7c:0, eth1, weight 1, 01:46:05
-B>* 10.0.0.4/32 [20/0] via fe80::e42:b9ff:fe7c:0, eth1, weight 1, 01:46:05
-  *                    via fe80::eb2:c8ff:fe09:0, eth0, weight 1, 01:46:05
-B>* 10.0.0.5/32 [20/0] via fe80::e42:b9ff:fe7c:0, eth1, weight 1, 01:46:05
-  *                    via fe80::eb2:c8ff:fe09:0, eth0, weight 1, 01:46:05
+B>* 10.0.0.1/32 [20/0] via fe80::eb2:c8ff:fe09:0, eth0, weight 1, 00:42:31
+B>* 10.0.0.2/32 [20/0] via fe80::e42:b9ff:fe7c:0, eth1, weight 1, 00:42:25
+B>* 10.0.0.4/32 [20/0] via fe80::e42:b9ff:fe7c:0, eth1, weight 1, 00:42:13
+  *                    via fe80::eb2:c8ff:fe09:0, eth0, weight 1, 00:42:13
+B>* 10.0.0.5/32 [20/0] via fe80::e42:b9ff:fe7c:0, eth1, weight 1, 00:42:04
+  *                    via fe80::eb2:c8ff:fe09:0, eth0, weight 1, 00:42:04
 ```
 
 
@@ -901,18 +916,18 @@ B>* 10.0.0.5/32 [20/0] via fe80::e42:b9ff:fe7c:0, eth1, weight 1, 01:46:05
 #### leaf-2
 
 ```
-vyos@leaf-2:~$ show ip bgp summary 
+vyos@leaf-2:~$ show ip bgp summary
 
 IPv4 Unicast Summary (VRF default):
 BGP router identifier 10.0.0.4, local AS number 65002 vrf-id 0
-BGP table version 20
+BGP table version 11
 RIB entries 13, using 1248 bytes of memory
 Peers 2, using 40 KiB of memory
 Peer groups 1, using 64 bytes of memory
 
 Neighbor        V         AS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc
-eth0            4      65000      2603      2608       20    0    0 01:48:00            5        7 N/A
-eth1            4      65000      2603      2608       20    0    0 01:48:00            5        7 N/A
+eth0            4      65000       899       904       11    0    0 00:43:15            5        7 N/A
+eth1            4      65000       899       905       11    0    0 00:43:10            5        7 N/A
 
 Total number of neighbors 2
 vyos@leaf-2:~$ show ip route bgp
@@ -923,14 +938,12 @@ Codes: K - kernel route, C - connected, S - static, R - RIP,
        > - selected route, * - FIB route, q - queued, r - rejected, b - backup
        t - trapped, o - offload failure
 
-B>* 10.0.0.1/32 [20/0] via fe80::eb2:c8ff:fe09:1, eth0, weight 1, 01:48:10
-B>* 10.0.0.2/32 [20/0] via fe80::e42:b9ff:fe7c:1, eth1, weight 1, 01:48:10
-B>* 10.0.0.3/32 [20/0] via fe80::e42:b9ff:fe7c:1, eth1, weight 1, 01:48:10
-  *                    via fe80::eb2:c8ff:fe09:1, eth0, weight 1, 01:48:10
-B>* 10.0.0.5/32 [20/0] via fe80::e42:b9ff:fe7c:1, eth1, weight 1, 01:48:10
-  *                    via fe80::eb2:c8ff:fe09:1, eth0, weight 1, 01:48:10
-B>* 10.0.200.0/24 [20/0] via fe80::e42:b9ff:fe7c:1, eth1, weight 1, 01:48:10
-  *                      via fe80::eb2:c8ff:fe09:1, eth0, weight 1, 01:48:10
+B>* 10.0.0.1/32 [20/0] via fe80::eb2:c8ff:fe09:1, eth0, weight 1, 00:43:18
+B>* 10.0.0.2/32 [20/0] via fe80::e42:b9ff:fe7c:1, eth1, weight 1, 00:43:12
+B>* 10.0.0.3/32 [20/0] via fe80::e42:b9ff:fe7c:1, eth1, weight 1, 00:43:12
+  *                    via fe80::eb2:c8ff:fe09:1, eth0, weight 1, 00:43:12
+B>* 10.0.0.5/32 [20/0] via fe80::e42:b9ff:fe7c:1, eth1, weight 1, 00:43:04
+  *                    via fe80::eb2:c8ff:fe09:1, eth0, weight 1, 00:43:04
 ```
 
 
@@ -943,14 +956,14 @@ vyos@leaf-3:~$ show ip bgp summary
 
 IPv4 Unicast Summary (VRF default):
 BGP router identifier 10.0.0.5, local AS number 65003 vrf-id 0
-BGP table version 17
+BGP table version 9
 RIB entries 13, using 1248 bytes of memory
 Peers 2, using 40 KiB of memory
 Peer groups 1, using 64 bytes of memory
 
 Neighbor        V         AS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc
-eth0            4      65000      2640      2649       17    0    0 01:50:10            5        7 N/A
-eth1            4      65000      2647      2655       17    0    0 01:50:10            5        7 N/A
+eth0            4      65000       907       912        9    0    0 00:43:37            5        7 N/A
+eth1            4      65000       906       911        9    0    0 00:43:33            5        7 N/A
 
 Total number of neighbors 2
 vyos@leaf-3:~$ show ip route bgp
@@ -961,12 +974,12 @@ Codes: K - kernel route, C - connected, S - static, R - RIP,
        > - selected route, * - FIB route, q - queued, r - rejected, b - backup
        t - trapped, o - offload failure
 
-B>* 10.0.0.1/32 [20/0] via fe80::eb2:c8ff:fe09:2, eth0, weight 1, 01:50:15
-B>* 10.0.0.2/32 [20/0] via fe80::e42:b9ff:fe7c:2, eth1, weight 1, 01:50:15
-B>* 10.0.0.3/32 [20/0] via fe80::e42:b9ff:fe7c:2, eth1, weight 1, 01:50:15
-  *                    via fe80::eb2:c8ff:fe09:2, eth0, weight 1, 01:50:15
-B>* 10.0.0.4/32 [20/0] via fe80::e42:b9ff:fe7c:2, eth1, weight 1, 01:50:15
-  *                    via fe80::eb2:c8ff:fe09:2, eth0, weight 1, 01:50:15
+B>* 10.0.0.1/32 [20/0] via fe80::eb2:c8ff:fe09:2, eth0, weight 1, 00:43:40
+B>* 10.0.0.2/32 [20/0] via fe80::e42:b9ff:fe7c:2, eth1, weight 1, 00:43:36
+B>* 10.0.0.3/32 [20/0] via fe80::e42:b9ff:fe7c:2, eth1, weight 1, 00:43:36
+  *                    via fe80::eb2:c8ff:fe09:2, eth0, weight 1, 00:43:36
+B>* 10.0.0.4/32 [20/0] via fe80::e42:b9ff:fe7c:2, eth1, weight 1, 00:43:36
+  *                    via fe80::eb2:c8ff:fe09:2, eth0, weight 1, 00:43:36
 ```
 
 
@@ -979,34 +992,34 @@ B>* 10.0.0.4/32 [20/0] via fe80::e42:b9ff:fe7c:2, eth1, weight 1, 01:50:15
 ```
 vyos@spine-1:~$ ping 10.0.0.3 count 4
 PING 10.0.0.3 (10.0.0.3) 56(84) bytes of data.
-64 bytes from 10.0.0.3: icmp_seq=1 ttl=64 time=2.83 ms
-64 bytes from 10.0.0.3: icmp_seq=2 ttl=64 time=1.19 ms
-64 bytes from 10.0.0.3: icmp_seq=3 ttl=64 time=1.34 ms
-64 bytes from 10.0.0.3: icmp_seq=4 ttl=64 time=1.30 ms
+64 bytes from 10.0.0.3: icmp_seq=1 ttl=64 time=14.2 ms
+64 bytes from 10.0.0.3: icmp_seq=2 ttl=64 time=1.21 ms
+64 bytes from 10.0.0.3: icmp_seq=3 ttl=64 time=1.13 ms
+64 bytes from 10.0.0.3: icmp_seq=4 ttl=64 time=1.18 ms
 
 --- 10.0.0.3 ping statistics ---
 4 packets transmitted, 4 received, 0% packet loss, time 3005ms
-rtt min/avg/max/mdev = 1.186/1.663/2.826/0.673 ms
+rtt min/avg/max/mdev = 1.131/4.428/14.190/5.636 ms
 vyos@spine-1:~$ ping 10.0.0.4 count 4
 PING 10.0.0.4 (10.0.0.4) 56(84) bytes of data.
-64 bytes from 10.0.0.4: icmp_seq=1 ttl=64 time=2.00 ms
-64 bytes from 10.0.0.4: icmp_seq=2 ttl=64 time=1.12 ms
-64 bytes from 10.0.0.4: icmp_seq=3 ttl=64 time=1.05 ms
-64 bytes from 10.0.0.4: icmp_seq=4 ttl=64 time=1.25 ms
+64 bytes from 10.0.0.4: icmp_seq=1 ttl=64 time=7.06 ms
+64 bytes from 10.0.0.4: icmp_seq=2 ttl=64 time=1.61 ms
+64 bytes from 10.0.0.4: icmp_seq=3 ttl=64 time=0.934 ms
+64 bytes from 10.0.0.4: icmp_seq=4 ttl=64 time=1.15 ms
 
 --- 10.0.0.4 ping statistics ---
-4 packets transmitted, 4 received, 0% packet loss, time 3004ms
-rtt min/avg/max/mdev = 1.046/1.350/1.997/0.379 ms
+4 packets transmitted, 4 received, 0% packet loss, time 3006ms
+rtt min/avg/max/mdev = 0.934/2.688/7.058/2.534 ms
 vyos@spine-1:~$ ping 10.0.0.5 count 4
 PING 10.0.0.5 (10.0.0.5) 56(84) bytes of data.
-64 bytes from 10.0.0.5: icmp_seq=1 ttl=64 time=1.98 ms
-64 bytes from 10.0.0.5: icmp_seq=2 ttl=64 time=1.10 ms
-64 bytes from 10.0.0.5: icmp_seq=3 ttl=64 time=1.15 ms
-64 bytes from 10.0.0.5: icmp_seq=4 ttl=64 time=0.999 ms
+64 bytes from 10.0.0.5: icmp_seq=1 ttl=64 time=3.88 ms
+64 bytes from 10.0.0.5: icmp_seq=2 ttl=64 time=2.90 ms
+64 bytes from 10.0.0.5: icmp_seq=3 ttl=64 time=1.14 ms
+64 bytes from 10.0.0.5: icmp_seq=4 ttl=64 time=1.50 ms
 
 --- 10.0.0.5 ping statistics ---
-4 packets transmitted, 4 received, 0% packet loss, time 3004ms
-rtt min/avg/max/mdev = 0.999/1.308/1.978/0.390 ms
+4 packets transmitted, 4 received, 0% packet loss, time 3005ms
+rtt min/avg/max/mdev = 1.136/2.352/3.875/1.097 ms
 ```
 
 
@@ -1017,34 +1030,34 @@ rtt min/avg/max/mdev = 0.999/1.308/1.978/0.390 ms
 ```
 vyos@spine-2:~$ ping 10.0.0.3 count 4
 PING 10.0.0.3 (10.0.0.3) 56(84) bytes of data.
-64 bytes from 10.0.0.3: icmp_seq=1 ttl=64 time=1.75 ms
-64 bytes from 10.0.0.3: icmp_seq=2 ttl=64 time=1.07 ms
-64 bytes from 10.0.0.3: icmp_seq=3 ttl=64 time=1.18 ms
-64 bytes from 10.0.0.3: icmp_seq=4 ttl=64 time=1.03 ms
+64 bytes from 10.0.0.3: icmp_seq=1 ttl=64 time=11.1 ms
+64 bytes from 10.0.0.3: icmp_seq=2 ttl=64 time=1.18 ms
+64 bytes from 10.0.0.3: icmp_seq=3 ttl=64 time=1.02 ms
+64 bytes from 10.0.0.3: icmp_seq=4 ttl=64 time=1.39 ms
 
 --- 10.0.0.3 ping statistics ---
-4 packets transmitted, 4 received, 0% packet loss, time 3004ms
-rtt min/avg/max/mdev = 1.032/1.256/1.748/0.288 ms
+4 packets transmitted, 4 received, 0% packet loss, time 3005ms
+rtt min/avg/max/mdev = 1.024/3.683/11.133/4.303 ms
 vyos@spine-2:~$ ping 10.0.0.4 count 4
 PING 10.0.0.4 (10.0.0.4) 56(84) bytes of data.
-64 bytes from 10.0.0.4: icmp_seq=1 ttl=64 time=1.52 ms
-64 bytes from 10.0.0.4: icmp_seq=2 ttl=64 time=1.09 ms
-64 bytes from 10.0.0.4: icmp_seq=3 ttl=64 time=0.919 ms
-64 bytes from 10.0.0.4: icmp_seq=4 ttl=64 time=1.03 ms
+64 bytes from 10.0.0.4: icmp_seq=1 ttl=64 time=1.80 ms
+64 bytes from 10.0.0.4: icmp_seq=2 ttl=64 time=1.16 ms
+64 bytes from 10.0.0.4: icmp_seq=3 ttl=64 time=1.16 ms
+64 bytes from 10.0.0.4: icmp_seq=4 ttl=64 time=1.17 ms
 
 --- 10.0.0.4 ping statistics ---
 4 packets transmitted, 4 received, 0% packet loss, time 3005ms
-rtt min/avg/max/mdev = 0.919/1.140/1.520/0.227 ms
+rtt min/avg/max/mdev = 1.155/1.321/1.803/0.278 ms
 vyos@spine-2:~$ ping 10.0.0.5 count 4
 PING 10.0.0.5 (10.0.0.5) 56(84) bytes of data.
-64 bytes from 10.0.0.5: icmp_seq=1 ttl=64 time=1.65 ms
-64 bytes from 10.0.0.5: icmp_seq=2 ttl=64 time=1.06 ms
-64 bytes from 10.0.0.5: icmp_seq=3 ttl=64 time=1.02 ms
-64 bytes from 10.0.0.5: icmp_seq=4 ttl=64 time=0.977 ms
+64 bytes from 10.0.0.5: icmp_seq=1 ttl=64 time=2.19 ms
+64 bytes from 10.0.0.5: icmp_seq=2 ttl=64 time=1.13 ms
+64 bytes from 10.0.0.5: icmp_seq=3 ttl=64 time=1.64 ms
+64 bytes from 10.0.0.5: icmp_seq=4 ttl=64 time=1.38 ms
 
 --- 10.0.0.5 ping statistics ---
 4 packets transmitted, 4 received, 0% packet loss, time 3005ms
-rtt min/avg/max/mdev = 0.977/1.176/1.652/0.275 ms
+rtt min/avg/max/mdev = 1.128/1.583/2.190/0.393 ms
 ```
 
 
@@ -1191,27 +1204,28 @@ rtt min/avg/max/mdev = 2.311/2.691/3.483/0.463 ms
 ```
 
 
+
 <br>
 
 
-## ## Проверка работы EVPN-VXLAN фабрики (Overlay)
+## Проверка работы EVPN-VXLAN фабрики (Overlay)
 
 ### 1. Проверка BGP EVPN
 
 #### spine-1
 
 ```
-vyos@spine-1:~$ show bgp l2vpn evpn summary 
+vyos@spine-1:~$ show bgp l2vpn evpn summary
 BGP router identifier 10.0.0.1, local AS number 65000 vrf-id 0
 BGP table version 0
-RIB entries 9, using 864 bytes of memory
+RIB entries 11, using 1056 bytes of memory
 Peers 3, using 60 KiB of memory
 Peer groups 1, using 64 bytes of memory
 
 Neighbor        V         AS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc
-eth0            4      65001      6364      6361        3    0    0 04:56:15            2        5 N/A
-eth1            4      65002      6373      6369        3    0    0 04:56:15            1        5 N/A
-eth2            4      65003      6363      6361        3    0    0 04:56:15            2        5 N/A
+eth0            4      65001      1635      1631       19    0    0 00:47:56            2        6 N/A
+eth1            4      65002      1632      1632       19    0    0 00:47:43            2        6 N/A
+eth2            4      65003      1639      1638       19    0    0 00:47:33            2        6 N/A
 
 Total number of neighbors 3
 ```
@@ -1225,14 +1239,14 @@ Total number of neighbors 3
 vyos@spine-2:~$ show bgp l2vpn evpn summary
 BGP router identifier 10.0.0.2, local AS number 65000 vrf-id 0
 BGP table version 0
-RIB entries 9, using 864 bytes of memory
+RIB entries 11, using 1056 bytes of memory
 Peers 3, using 60 KiB of memory
 Peer groups 1, using 64 bytes of memory
 
 Neighbor        V         AS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc
-eth0            4      65001      6401      6397        3    0    0 04:58:09            2        5 N/A
-eth1            4      65002      6414      6408        3    0    0 04:58:09            1        5 N/A
-eth2            4      65003      6412      6406        3    0    0 04:58:09            2        5 N/A
+eth0            4      65001      1664      1661       19    0    0 00:49:42            2        6 N/A
+eth1            4      65002      1676      1673       19    0    0 00:49:30            2        6 N/A
+eth2            4      65003      1672      1669       19    0    0 00:49:21            2        6 N/A
 
 Total number of neighbors 3
 ```
@@ -1246,13 +1260,13 @@ Total number of neighbors 3
 vyos@leaf-1:~$ show bgp l2vpn evpn summary
 BGP router identifier 10.0.0.3, local AS number 65001 vrf-id 0
 BGP table version 0
-RIB entries 9, using 864 bytes of memory
+RIB entries 11, using 1056 bytes of memory
 Peers 2, using 40 KiB of memory
 Peer groups 1, using 64 bytes of memory
 
 Neighbor        V         AS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc
-eth0            4      65000      6428      6436        3    0    0 04:59:32            3        5 N/A
-eth1            4      65000      6427      6434        3    0    0 04:59:32            3        5 N/A
+eth0            4      65000      1042      1045        9    0    0 00:50:26            4        6 N/A
+eth1            4      65000      1041      1046        9    0    0 00:50:20            4        6 N/A
 
 Total number of neighbors 2
 ```
@@ -1266,13 +1280,13 @@ Total number of neighbors 2
 vyos@leaf-2:~$ show bgp l2vpn evpn summary
 BGP router identifier 10.0.0.4, local AS number 65002 vrf-id 0
 BGP table version 0
-RIB entries 9, using 864 bytes of memory
+RIB entries 11, using 1056 bytes of memory
 Peers 2, using 40 KiB of memory
 Peer groups 1, using 64 bytes of memory
 
 Neighbor        V         AS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc
-eth0            4      65000      6471      6476        3    0    0 05:01:26            4        5 N/A
-eth1            4      65000      6471      6476        3    0    0 05:01:26            4        5 N/A
+eth0            4      65000      1045      1050        9    0    0 00:50:31            4        6 N/A
+eth1            4      65000      1044      1050        9    0    0 00:50:26            4        6 N/A
 
 Total number of neighbors 2
 ```
@@ -1286,13 +1300,13 @@ Total number of neighbors 2
 vyos@leaf-3:~$ show bgp l2vpn evpn summary
 BGP router identifier 10.0.0.5, local AS number 65003 vrf-id 0
 BGP table version 0
-RIB entries 9, using 864 bytes of memory
+RIB entries 11, using 1056 bytes of memory
 Peers 2, using 40 KiB of memory
 Peer groups 1, using 64 bytes of memory
 
 Neighbor        V         AS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc
-eth0            4      65000      6477      6487        3    0    0 05:02:07            3        5 N/A
-eth1            4      65000      6484      6493        3    0    0 05:02:07            3        5 N/A
+eth0            4      65000      1049      1054        9    0    0 00:50:44            4        6 N/A
+eth1            4      65000      1049      1054        9    0    0 00:50:40            4        6 N/A
 
 Total number of neighbors 2
 ```
@@ -1306,7 +1320,7 @@ Total number of neighbors 2
 
 ```
 vyos@spine-1:~$ show bgp l2vpn evpn route type macip
-BGP table version is 5, local router ID is 10.0.0.1
+BGP table version is 21, local router ID is 10.0.0.1
 Status codes: s suppressed, d damped, h history, * valid, > best, i - internal
 Origin codes: i - IGP, e - EGP, ? - incomplete
 EVPN type-1 prefix: [1]:[EthTag]:[ESI]:[IPlen]:[VTEP-IP]:[Frag-id]
@@ -1362,7 +1376,7 @@ Displayed 10 prefixes (10 paths) (of requested type)
 
 ```
 vyos@spine-2:~$ show bgp l2vpn evpn route type macip
-BGP table version is 5, local router ID is 10.0.0.2
+BGP table version is 21, local router ID is 10.0.0.2
 Status codes: s suppressed, d damped, h history, * valid, > best, i - internal
 Origin codes: i - IGP, e - EGP, ? - incomplete
 EVPN type-1 prefix: [1]:[EthTag]:[ESI]:[IPlen]:[VTEP-IP]:[Frag-id]
@@ -1417,8 +1431,8 @@ Displayed 10 prefixes (10 paths) (of requested type)
 #### leaf-1
 
 ```
-vyos@leaf-1:~$  show bgp l2vpn evpn route type macip
-BGP table version is 3, local router ID is 10.0.0.3
+vyos@leaf-1:~$ show bgp l2vpn evpn route type macip
+BGP table version is 11, local router ID is 10.0.0.3
 Status codes: s suppressed, d damped, h history, * valid, > best, i - internal
 Origin codes: i - IGP, e - EGP, ? - incomplete
 EVPN type-1 prefix: [1]:[EthTag]:[ESI]:[IPlen]:[VTEP-IP]:[Frag-id]
@@ -1493,7 +1507,7 @@ Displayed 10 prefixes (16 paths) (of requested type)
 
 ```
 vyos@leaf-2:~$ show bgp l2vpn evpn route type macip
-BGP table version is 5, local router ID is 10.0.0.4
+BGP table version is 11, local router ID is 10.0.0.4
 Status codes: s suppressed, d damped, h history, * valid, > best, i - internal
 Origin codes: i - IGP, e - EGP, ? - incomplete
 EVPN type-1 prefix: [1]:[EthTag]:[ESI]:[IPlen]:[VTEP-IP]:[Frag-id]
@@ -1574,7 +1588,7 @@ Displayed 10 prefixes (18 paths) (of requested type)
 
 ```
 vyos@leaf-3:~$ show bgp l2vpn evpn route type macip
-BGP table version is 9, local router ID is 10.0.0.5
+BGP table version is 11, local router ID is 10.0.0.5
 Status codes: s suppressed, d damped, h history, * valid, > best, i - internal
 Origin codes: i - IGP, e - EGP, ? - incomplete
 EVPN type-1 prefix: [1]:[EthTag]:[ESI]:[IPlen]:[VTEP-IP]:[Frag-id]
@@ -1586,29 +1600,29 @@ EVPN type-5 prefix: [5]:[EthTag]:[IPlen]:[IP]
    Network          Next Hop            Metric LocPrf Weight Path
                     Extended Community
 Route Distinguisher: 10.0.0.3:2
- *> [2]:[0]:[48]:[00:50:79:66:68:00]
-                    10.0.0.3                               0 65000 65001 i
-                    RT:65001:100 ET:8
  *  [2]:[0]:[48]:[00:50:79:66:68:00]
                     10.0.0.3                               0 65000 65001 i
                     RT:65001:100 ET:8
- *> [2]:[0]:[48]:[00:50:79:66:68:00]:[32]:[10.0.100.1]
+ *> [2]:[0]:[48]:[00:50:79:66:68:00]
                     10.0.0.3                               0 65000 65001 i
                     RT:65001:100 ET:8
  *  [2]:[0]:[48]:[00:50:79:66:68:00]:[32]:[10.0.100.1]
                     10.0.0.3                               0 65000 65001 i
                     RT:65001:100 ET:8
-Route Distinguisher: 10.0.0.3:3
- *> [2]:[0]:[48]:[00:50:79:66:68:02]
+ *> [2]:[0]:[48]:[00:50:79:66:68:00]:[32]:[10.0.100.1]
                     10.0.0.3                               0 65000 65001 i
-                    RT:65001:200 ET:8
+                    RT:65001:100 ET:8
+Route Distinguisher: 10.0.0.3:3
  *  [2]:[0]:[48]:[00:50:79:66:68:02]
                     10.0.0.3                               0 65000 65001 i
                     RT:65001:200 ET:8
- *> [2]:[0]:[48]:[00:50:79:66:68:02]:[32]:[10.0.200.1]
+ *> [2]:[0]:[48]:[00:50:79:66:68:02]
                     10.0.0.3                               0 65000 65001 i
                     RT:65001:200 ET:8
  *  [2]:[0]:[48]:[00:50:79:66:68:02]:[32]:[10.0.200.1]
+                    10.0.0.3                               0 65000 65001 i
+                    RT:65001:200 ET:8
+ *> [2]:[0]:[48]:[00:50:79:66:68:02]:[32]:[10.0.200.1]
                     10.0.0.3                               0 65000 65001 i
                     RT:65001:200 ET:8
 Route Distinguisher: 10.0.0.4:2
@@ -1651,7 +1665,7 @@ Displayed 10 prefixes (16 paths) (of requested type)
 
 ```
 vyos@spine-1:~$ show bgp l2vpn evpn route type multicast
-BGP table version is 9, local router ID is 10.0.0.1
+BGP table version is 21, local router ID is 10.0.0.1
 Status codes: s suppressed, d damped, h history, * valid, > best, i - internal
 Origin codes: i - IGP, e - EGP, ? - incomplete
 EVPN type-1 prefix: [1]:[EthTag]:[ESI]:[IPlen]:[VTEP-IP]:[Frag-id]
@@ -1674,6 +1688,10 @@ Route Distinguisher: 10.0.0.4:2
  *> [3]:[0]:[32]:[10.0.0.4]
                     10.0.0.4                               0 65002 i
                     RT:65002:100 ET:8
+Route Distinguisher: 10.0.0.4:3
+ *> [3]:[0]:[32]:[10.0.0.4]
+                    10.0.0.4                               0 65002 i
+                    RT:65002:200 ET:8
 Route Distinguisher: 10.0.0.5:2
  *> [3]:[0]:[32]:[10.0.0.5]
                     10.0.0.5                               0 65003 i
@@ -1683,7 +1701,7 @@ Route Distinguisher: 10.0.0.5:3
                     10.0.0.5                               0 65003 i
                     RT:65003:200 ET:8
 
-Displayed 5 prefixes (5 paths) (of requested type)
+Displayed 6 prefixes (6 paths) (of requested type)
 ```
 
 
@@ -1693,7 +1711,7 @@ Displayed 5 prefixes (5 paths) (of requested type)
 
 ```
 vyos@spine-2:~$ show bgp l2vpn evpn route type multicast
-BGP table version is 9, local router ID is 10.0.0.2
+BGP table version is 21, local router ID is 10.0.0.2
 Status codes: s suppressed, d damped, h history, * valid, > best, i - internal
 Origin codes: i - IGP, e - EGP, ? - incomplete
 EVPN type-1 prefix: [1]:[EthTag]:[ESI]:[IPlen]:[VTEP-IP]:[Frag-id]
@@ -1716,6 +1734,10 @@ Route Distinguisher: 10.0.0.4:2
  *> [3]:[0]:[32]:[10.0.0.4]
                     10.0.0.4                               0 65002 i
                     RT:65002:100 ET:8
+Route Distinguisher: 10.0.0.4:3
+ *> [3]:[0]:[32]:[10.0.0.4]
+                    10.0.0.4                               0 65002 i
+                    RT:65002:200 ET:8
 Route Distinguisher: 10.0.0.5:2
  *> [3]:[0]:[32]:[10.0.0.5]
                     10.0.0.5                               0 65003 i
@@ -1725,7 +1747,7 @@ Route Distinguisher: 10.0.0.5:3
                     10.0.0.5                               0 65003 i
                     RT:65003:200 ET:8
 
-Displayed 5 prefixes (5 paths) (of requested type)
+Displayed 6 prefixes (6 paths) (of requested type)
 ```
 
 <br>
@@ -1734,7 +1756,7 @@ Displayed 5 prefixes (5 paths) (of requested type)
 
 ```
 vyos@leaf-1:~$ show bgp l2vpn evpn route type multicast
-BGP table version is 7, local router ID is 10.0.0.3
+BGP table version is 11, local router ID is 10.0.0.3
 Status codes: s suppressed, d damped, h history, * valid, > best, i - internal
 Origin codes: i - IGP, e - EGP, ? - incomplete
 EVPN type-1 prefix: [1]:[EthTag]:[ESI]:[IPlen]:[VTEP-IP]:[Frag-id]
@@ -1754,28 +1776,35 @@ Route Distinguisher: 10.0.0.3:3
                     10.0.0.3                           32768 i
                     ET:8 RT:65001:200
 Route Distinguisher: 10.0.0.4:2
- *> [3]:[0]:[32]:[10.0.0.4]
-                    10.0.0.4                               0 65000 65002 i
-                    RT:65002:100 ET:8
  *  [3]:[0]:[32]:[10.0.0.4]
                     10.0.0.4                               0 65000 65002 i
                     RT:65002:100 ET:8
+ *> [3]:[0]:[32]:[10.0.0.4]
+                    10.0.0.4                               0 65000 65002 i
+                    RT:65002:100 ET:8
+Route Distinguisher: 10.0.0.4:3
+ *  [3]:[0]:[32]:[10.0.0.4]
+                    10.0.0.4                               0 65000 65002 i
+                    RT:65002:200 ET:8
+ *> [3]:[0]:[32]:[10.0.0.4]
+                    10.0.0.4                               0 65000 65002 i
+                    RT:65002:200 ET:8
 Route Distinguisher: 10.0.0.5:2
- *> [3]:[0]:[32]:[10.0.0.5]
+ *  [3]:[0]:[32]:[10.0.0.5]
                     10.0.0.5                               0 65000 65003 i
                     RT:65003:100 ET:8
- *  [3]:[0]:[32]:[10.0.0.5]
+ *> [3]:[0]:[32]:[10.0.0.5]
                     10.0.0.5                               0 65000 65003 i
                     RT:65003:100 ET:8
 Route Distinguisher: 10.0.0.5:3
- *> [3]:[0]:[32]:[10.0.0.5]
-                    10.0.0.5                               0 65000 65003 i
-                    RT:65003:200 ET:8
  *  [3]:[0]:[32]:[10.0.0.5]
                     10.0.0.5                               0 65000 65003 i
                     RT:65003:200 ET:8
+ *> [3]:[0]:[32]:[10.0.0.5]
+                    10.0.0.5                               0 65000 65003 i
+                    RT:65003:200 ET:8
 
-Displayed 5 prefixes (8 paths) (of requested type)
+Displayed 6 prefixes (10 paths) (of requested type)
 ```
 
 <br>
@@ -1784,7 +1813,7 @@ Displayed 5 prefixes (8 paths) (of requested type)
 
 ```
 vyos@leaf-2:~$ show bgp l2vpn evpn route type multicast
-BGP table version is 9, local router ID is 10.0.0.4
+BGP table version is 11, local router ID is 10.0.0.4
 Status codes: s suppressed, d damped, h history, * valid, > best, i - internal
 Origin codes: i - IGP, e - EGP, ? - incomplete
 EVPN type-1 prefix: [1]:[EthTag]:[ESI]:[IPlen]:[VTEP-IP]:[Frag-id]
@@ -1796,39 +1825,43 @@ EVPN type-5 prefix: [5]:[EthTag]:[IPlen]:[IP]
    Network          Next Hop            Metric LocPrf Weight Path
                     Extended Community
 Route Distinguisher: 10.0.0.3:2
- *> [3]:[0]:[32]:[10.0.0.3]
+ *  [3]:[0]:[32]:[10.0.0.3]
                     10.0.0.3                               0 65000 65001 i
                     RT:65001:100 ET:8
- *  [3]:[0]:[32]:[10.0.0.3]
+ *> [3]:[0]:[32]:[10.0.0.3]
                     10.0.0.3                               0 65000 65001 i
                     RT:65001:100 ET:8
 Route Distinguisher: 10.0.0.3:3
- *> [3]:[0]:[32]:[10.0.0.3]
+ *  [3]:[0]:[32]:[10.0.0.3]
                     10.0.0.3                               0 65000 65001 i
                     RT:65001:200 ET:8
- *  [3]:[0]:[32]:[10.0.0.3]
+ *> [3]:[0]:[32]:[10.0.0.3]
                     10.0.0.3                               0 65000 65001 i
                     RT:65001:200 ET:8
 Route Distinguisher: 10.0.0.4:2
  *> [3]:[0]:[32]:[10.0.0.4]
                     10.0.0.4                           32768 i
                     ET:8 RT:65002:100
+Route Distinguisher: 10.0.0.4:3
+ *> [3]:[0]:[32]:[10.0.0.4]
+                    10.0.0.4                           32768 i
+                    ET:8 RT:65002:200
 Route Distinguisher: 10.0.0.5:2
- *> [3]:[0]:[32]:[10.0.0.5]
+ *  [3]:[0]:[32]:[10.0.0.5]
                     10.0.0.5                               0 65000 65003 i
                     RT:65003:100 ET:8
- *  [3]:[0]:[32]:[10.0.0.5]
+ *> [3]:[0]:[32]:[10.0.0.5]
                     10.0.0.5                               0 65000 65003 i
                     RT:65003:100 ET:8
 Route Distinguisher: 10.0.0.5:3
- *> [3]:[0]:[32]:[10.0.0.5]
-                    10.0.0.5                               0 65000 65003 i
-                    RT:65003:200 ET:8
  *  [3]:[0]:[32]:[10.0.0.5]
                     10.0.0.5                               0 65000 65003 i
                     RT:65003:200 ET:8
+ *> [3]:[0]:[32]:[10.0.0.5]
+                    10.0.0.5                               0 65000 65003 i
+                    RT:65003:200 ET:8
 
-Displayed 5 prefixes (9 paths) (of requested type)
+Displayed 6 prefixes (10 paths) (of requested type)
 ```
 
 
@@ -1838,7 +1871,7 @@ Displayed 5 prefixes (9 paths) (of requested type)
 
 ```
 vyos@leaf-3:~$ show bgp l2vpn evpn route type multicast
-BGP table version is 9, local router ID is 10.0.0.5
+BGP table version is 13, local router ID is 10.0.0.5
 Status codes: s suppressed, d damped, h history, * valid, > best, i - internal
 Origin codes: i - IGP, e - EGP, ? - incomplete
 EVPN type-1 prefix: [1]:[EthTag]:[ESI]:[IPlen]:[VTEP-IP]:[Frag-id]
@@ -1850,26 +1883,33 @@ EVPN type-5 prefix: [5]:[EthTag]:[IPlen]:[IP]
    Network          Next Hop            Metric LocPrf Weight Path
                     Extended Community
 Route Distinguisher: 10.0.0.3:2
- *> [3]:[0]:[32]:[10.0.0.3]
+ *  [3]:[0]:[32]:[10.0.0.3]
                     10.0.0.3                               0 65000 65001 i
                     RT:65001:100 ET:8
- *  [3]:[0]:[32]:[10.0.0.3]
+ *> [3]:[0]:[32]:[10.0.0.3]
                     10.0.0.3                               0 65000 65001 i
                     RT:65001:100 ET:8
 Route Distinguisher: 10.0.0.3:3
- *> [3]:[0]:[32]:[10.0.0.3]
-                    10.0.0.3                               0 65000 65001 i
-                    RT:65001:200 ET:8
  *  [3]:[0]:[32]:[10.0.0.3]
                     10.0.0.3                               0 65000 65001 i
                     RT:65001:200 ET:8
+ *> [3]:[0]:[32]:[10.0.0.3]
+                    10.0.0.3                               0 65000 65001 i
+                    RT:65001:200 ET:8
 Route Distinguisher: 10.0.0.4:2
- *> [3]:[0]:[32]:[10.0.0.4]
-                    10.0.0.4                               0 65000 65002 i
-                    RT:65002:100 ET:8
  *  [3]:[0]:[32]:[10.0.0.4]
                     10.0.0.4                               0 65000 65002 i
                     RT:65002:100 ET:8
+ *> [3]:[0]:[32]:[10.0.0.4]
+                    10.0.0.4                               0 65000 65002 i
+                    RT:65002:100 ET:8
+Route Distinguisher: 10.0.0.4:3
+ *  [3]:[0]:[32]:[10.0.0.4]
+                    10.0.0.4                               0 65000 65002 i
+                    RT:65002:200 ET:8
+ *> [3]:[0]:[32]:[10.0.0.4]
+                    10.0.0.4                               0 65000 65002 i
+                    RT:65002:200 ET:8
 Route Distinguisher: 10.0.0.5:2
  *> [3]:[0]:[32]:[10.0.0.5]
                     10.0.0.5                           32768 i
@@ -1879,7 +1919,7 @@ Route Distinguisher: 10.0.0.5:3
                     10.0.0.5                           32768 i
                     ET:8 RT:65003:200
 
-Displayed 5 prefixes (8 paths) (of requested type)
+Displayed 6 prefixes (10 paths) (of requested type)
 ```
 
 
@@ -1892,7 +1932,7 @@ Displayed 5 prefixes (8 paths) (of requested type)
 ```
 vyos@leaf-1:~$ show evpn vni
 VNI        Type VxLAN IF              # MACs   # ARPs   # Remote VTEPs  Tenant VRF                           
-200        L2   vxlan200              2        2        1               default                              
+200        L2   vxlan200              2        2        2               default                              
 100        L2   vxlan100              3        3        2               default
 vyos@leaf-1:~$ show evpn mac vni 100
 Number of MACs (local and remote) known for this VNI: 3
@@ -1917,6 +1957,7 @@ MAC               Type   Flags Intf/Remote ES/VTEP            VLAN  Seq #'s
 ```
 vyos@leaf-2:~$ show evpn vni
 VNI        Type VxLAN IF              # MACs   # ARPs   # Remote VTEPs  Tenant VRF                           
+200        L2   vxlan200              2        2        2               default                              
 100        L2   vxlan100              3        3        2               default
 vyos@leaf-2:~$ show evpn mac vni 100
 Number of MACs (local and remote) known for this VNI: 3
@@ -1925,6 +1966,12 @@ MAC               Type   Flags Intf/Remote ES/VTEP            VLAN  Seq #'s
 00:50:79:66:68:00 remote       10.0.0.3                             0/0
 00:50:79:66:68:04 local        eth2                                 0/0
 00:50:79:66:68:01 remote       10.0.0.5                             0/0
+vyos@leaf-2:~$ show evpn mac vni 200
+Number of MACs (local and remote) known for this VNI: 2
+Flags: N=sync-neighs, I=local-inactive, P=peer-active, X=peer-proxy
+MAC               Type   Flags Intf/Remote ES/VTEP            VLAN  Seq #'s
+00:50:79:66:68:03 remote       10.0.0.5                             0/0
+00:50:79:66:68:02 remote       10.0.0.3                             0/0
 ```
 
 <br>
@@ -1934,7 +1981,7 @@ MAC               Type   Flags Intf/Remote ES/VTEP            VLAN  Seq #'s
 ```
 vyos@leaf-3:~$ show evpn vni
 VNI        Type VxLAN IF              # MACs   # ARPs   # Remote VTEPs  Tenant VRF                           
-200        L2   vxlan200              2        2        1               default                              
+200        L2   vxlan200              2        2        2               default                              
 100        L2   vxlan100              3        3        2               default
 vyos@leaf-3:~$ show evpn mac vni 100
 Number of MACs (local and remote) known for this VNI: 3
@@ -1972,37 +2019,47 @@ MTU         : 1500
 
 client-1> ping 10.0.100.2 -c 4
 
-84 bytes from 10.0.100.2 icmp_seq=1 ttl=64 time=4.748 ms
-84 bytes from 10.0.100.2 icmp_seq=2 ttl=64 time=3.878 ms
-84 bytes from 10.0.100.2 icmp_seq=3 ttl=64 time=3.106 ms
-84 bytes from 10.0.100.2 icmp_seq=4 ttl=64 time=3.677 ms
+84 bytes from 10.0.100.2 icmp_seq=1 ttl=64 time=4.345 ms
+84 bytes from 10.0.100.2 icmp_seq=2 ttl=64 time=3.088 ms
+84 bytes from 10.0.100.2 icmp_seq=3 ttl=64 time=3.610 ms
+84 bytes from 10.0.100.2 icmp_seq=4 ttl=64 time=4.951 ms
 
 client-1> ping 10.0.100.3 -c 4
 
-84 bytes from 10.0.100.3 icmp_seq=1 ttl=64 time=3.006 ms
-84 bytes from 10.0.100.3 icmp_seq=2 ttl=64 time=3.236 ms
-84 bytes from 10.0.100.3 icmp_seq=3 ttl=64 time=3.510 ms
-84 bytes from 10.0.100.3 icmp_seq=4 ttl=64 time=3.260 ms
+84 bytes from 10.0.100.3 icmp_seq=1 ttl=64 time=4.953 ms
+84 bytes from 10.0.100.3 icmp_seq=2 ttl=64 time=3.478 ms
+84 bytes from 10.0.100.3 icmp_seq=3 ttl=64 time=3.804 ms
+84 bytes from 10.0.100.3 icmp_seq=4 ttl=64 time=4.274 ms
 
 client-1> ping 10.0.200.1 -c 4
 
-84 bytes from 10.0.200.1 icmp_seq=1 ttl=63 time=2.429 ms
-84 bytes from 10.0.200.1 icmp_seq=2 ttl=63 time=1.136 ms
-84 bytes from 10.0.200.1 icmp_seq=3 ttl=63 time=1.235 ms
-84 bytes from 10.0.200.1 icmp_seq=4 ttl=63 time=1.214 ms
+84 bytes from 10.0.200.1 icmp_seq=1 ttl=63 time=9.348 ms
+84 bytes from 10.0.200.1 icmp_seq=2 ttl=63 time=1.303 ms
+84 bytes from 10.0.200.1 icmp_seq=3 ttl=63 time=1.315 ms
+84 bytes from 10.0.200.1 icmp_seq=4 ttl=63 time=1.232 ms
+
+client-1> trace 10.0.200.1    
+trace to 10.0.200.1, 8 hops max, press Ctrl+C to stop
+ 1   10.0.100.254   0.841 ms  0.522 ms  0.514 ms
+ 2   *10.0.200.1   0.937 ms (ICMP type:3, code:3, Destination port unreachable)
 
 client-1> ping 10.0.200.2 -c 4
 
-84 bytes from 10.0.200.2 icmp_seq=1 ttl=63 time=3.815 ms
-84 bytes from 10.0.200.2 icmp_seq=2 ttl=63 time=3.610 ms
-84 bytes from 10.0.200.2 icmp_seq=3 ttl=63 time=3.316 ms
-84 bytes from 10.0.200.2 icmp_seq=4 ttl=63 time=3.939 ms
+84 bytes from 10.0.200.2 icmp_seq=1 ttl=63 time=11.472 ms
+84 bytes from 10.0.200.2 icmp_seq=2 ttl=63 time=3.883 ms
+84 bytes from 10.0.200.2 icmp_seq=3 ttl=63 time=3.938 ms
+84 bytes from 10.0.200.2 icmp_seq=4 ttl=63 time=5.059 ms
 
-client-1> show arp
+client-1> trace 10.0.200.2    
+trace to 10.0.200.2, 8 hops max, press Ctrl+C to stop
+ 1   10.0.100.254   1.864 ms  0.600 ms  0.512 ms
+ 2   *10.0.200.2   5.032 ms (ICMP type:3, code:3, Destination port unreachable)
+ 
+client-1> show arp            
 
-02:00:00:00:01:00  10.0.100.254 expires in 112 seconds 
-00:50:79:66:68:04  10.0.100.2 expires in 86 seconds 
-00:50:79:66:68:01  10.0.100.3 expires in 96 seconds 
+00:50:79:66:68:04  10.0.100.2 expires in 101 seconds 
+00:50:79:66:68:01  10.0.100.3 expires in 106 seconds 
+02:00:00:00:01:00  10.0.100.254 expires in 115 seconds 
 ```
 
 <br>
@@ -2023,36 +2080,51 @@ MTU         : 1500
 
 client-2> ping 10.0.100.1 -c 4
 
-84 bytes from 10.0.100.1 icmp_seq=1 ttl=63 time=1.676 ms
-84 bytes from 10.0.100.1 icmp_seq=2 ttl=63 time=1.135 ms
-84 bytes from 10.0.100.1 icmp_seq=3 ttl=63 time=1.196 ms
-84 bytes from 10.0.100.1 icmp_seq=4 ttl=63 time=1.149 ms
+84 bytes from 10.0.100.1 icmp_seq=1 ttl=63 time=4.243 ms
+84 bytes from 10.0.100.1 icmp_seq=2 ttl=63 time=1.307 ms
+84 bytes from 10.0.100.1 icmp_seq=3 ttl=63 time=1.156 ms
+84 bytes from 10.0.100.1 icmp_seq=4 ttl=63 time=1.018 ms
+
+client-2> trace 10.0.100.1
+trace to 10.0.100.1, 8 hops max, press Ctrl+C to stop
+ 1   10.0.200.254   0.822 ms  0.367 ms  0.545 ms
+ 2   *10.0.100.1   2.583 ms (ICMP type:3, code:3, Destination port unreachable)
 
 client-2> ping 10.0.100.2 -c 4
 
-84 bytes from 10.0.100.2 icmp_seq=1 ttl=61 time=7.975 ms
-84 bytes from 10.0.100.2 icmp_seq=2 ttl=61 time=4.385 ms
-84 bytes from 10.0.100.2 icmp_seq=3 ttl=61 time=3.676 ms
-84 bytes from 10.0.100.2 icmp_seq=4 ttl=61 time=3.641 ms
+84 bytes from 10.0.100.2 icmp_seq=1 ttl=61 time=10.140 ms
+84 bytes from 10.0.100.2 icmp_seq=2 ttl=61 time=5.042 ms
+84 bytes from 10.0.100.2 icmp_seq=3 ttl=61 time=4.422 ms
+84 bytes from 10.0.100.2 icmp_seq=4 ttl=61 time=5.388 ms
+
+client-2> trace 10.0.100.2    
+trace to 10.0.100.2, 8 hops max, press Ctrl+C to stop
+ 1   10.0.200.254   0.719 ms  0.554 ms  0.482 ms
+ 2   *10.0.100.2   5.687 ms (ICMP type:3, code:3, Destination port unreachable)
 
 client-2> ping 10.0.100.3 -c 4
 
-84 bytes from 10.0.100.3 icmp_seq=1 ttl=63 time=9.866 ms
-84 bytes from 10.0.100.3 icmp_seq=2 ttl=63 time=3.607 ms
-84 bytes from 10.0.100.3 icmp_seq=3 ttl=63 time=3.756 ms
-84 bytes from 10.0.100.3 icmp_seq=4 ttl=63 time=4.920 ms
+84 bytes from 10.0.100.3 icmp_seq=1 ttl=63 time=7.024 ms
+84 bytes from 10.0.100.3 icmp_seq=2 ttl=63 time=3.796 ms
+84 bytes from 10.0.100.3 icmp_seq=3 ttl=63 time=3.413 ms
+84 bytes from 10.0.100.3 icmp_seq=4 ttl=63 time=4.660 ms
+
+client-2> trace 10.0.100.3    
+trace to 10.0.100.3, 8 hops max, press Ctrl+C to stop
+ 1   10.0.200.254   0.950 ms  0.316 ms  0.548 ms
+ 2   *10.0.100.3   7.040 ms (ICMP type:3, code:3, Destination port unreachable)
 
 client-2> ping 10.0.200.2 -c 4
 
-84 bytes from 10.0.200.2 icmp_seq=1 ttl=64 time=3.361 ms
-84 bytes from 10.0.200.2 icmp_seq=2 ttl=64 time=3.631 ms
-84 bytes from 10.0.200.2 icmp_seq=3 ttl=64 time=3.528 ms
-84 bytes from 10.0.200.2 icmp_seq=4 ttl=64 time=5.399 ms
+84 bytes from 10.0.200.2 icmp_seq=1 ttl=64 time=5.808 ms
+84 bytes from 10.0.200.2 icmp_seq=2 ttl=64 time=3.578 ms
+84 bytes from 10.0.200.2 icmp_seq=3 ttl=64 time=3.940 ms
+84 bytes from 10.0.200.2 icmp_seq=4 ttl=64 time=4.530 ms
 
-client-2> show arp
+client-2> show arp        
 
-02:00:00:00:02:00  10.0.200.254 expires in 75 seconds 
-00:50:79:66:68:03  10.0.200.2 expires in 101 seconds 
+02:00:00:00:02:00  10.0.200.254 expires in 100 seconds 
+00:50:79:66:68:03  10.0.200.2 expires in 112 seconds 
 ```
 
 
@@ -2074,37 +2146,47 @@ MTU         : 1500
 
 client-3> ping 10.0.100.1 -c 4
 
-84 bytes from 10.0.100.1 icmp_seq=1 ttl=64 time=4.393 ms
-84 bytes from 10.0.100.1 icmp_seq=2 ttl=64 time=3.511 ms
-84 bytes from 10.0.100.1 icmp_seq=3 ttl=64 time=3.729 ms
-84 bytes from 10.0.100.1 icmp_seq=4 ttl=64 time=3.246 ms
+84 bytes from 10.0.100.1 icmp_seq=1 ttl=64 time=6.603 ms
+84 bytes from 10.0.100.1 icmp_seq=2 ttl=64 time=3.748 ms
+84 bytes from 10.0.100.1 icmp_seq=3 ttl=64 time=3.442 ms
+84 bytes from 10.0.100.1 icmp_seq=4 ttl=64 time=4.201 ms
 
 client-3> ping 10.0.100.3 -c 4
 
-84 bytes from 10.0.100.3 icmp_seq=1 ttl=64 time=5.084 ms
-84 bytes from 10.0.100.3 icmp_seq=2 ttl=64 time=3.176 ms
-84 bytes from 10.0.100.3 icmp_seq=3 ttl=64 time=3.889 ms
-84 bytes from 10.0.100.3 icmp_seq=4 ttl=64 time=3.510 ms
+84 bytes from 10.0.100.3 icmp_seq=1 ttl=64 time=6.885 ms
+84 bytes from 10.0.100.3 icmp_seq=2 ttl=64 time=3.442 ms
+84 bytes from 10.0.100.3 icmp_seq=3 ttl=64 time=3.532 ms
+84 bytes from 10.0.100.3 icmp_seq=4 ttl=64 time=4.031 ms
 
 client-3> ping 10.0.200.1 -c 4
 
-84 bytes from 10.0.200.1 icmp_seq=1 ttl=63 time=8.088 ms
-84 bytes from 10.0.200.1 icmp_seq=2 ttl=63 time=3.902 ms
-84 bytes from 10.0.200.1 icmp_seq=3 ttl=63 time=4.074 ms
-84 bytes from 10.0.200.1 icmp_seq=4 ttl=63 time=3.484 ms
+84 bytes from 10.0.200.1 icmp_seq=1 ttl=63 time=8.575 ms
+84 bytes from 10.0.200.1 icmp_seq=2 ttl=63 time=4.183 ms
+84 bytes from 10.0.200.1 icmp_seq=3 ttl=63 time=3.793 ms
+84 bytes from 10.0.200.1 icmp_seq=4 ttl=63 time=3.674 ms
+
+client-3> trace 10.0.200.1
+trace to 10.0.200.1, 8 hops max, press Ctrl+C to stop
+ 1   10.0.100.254   1.334 ms  0.400 ms  0.671 ms
+ 2   *10.0.200.1   4.774 ms (ICMP type:3, code:3, Destination port unreachable)
 
 client-3> ping 10.0.200.2 -c 4
 
-84 bytes from 10.0.200.2 icmp_seq=1 ttl=63 time=7.586 ms
-84 bytes from 10.0.200.2 icmp_seq=2 ttl=63 time=3.656 ms
-84 bytes from 10.0.200.2 icmp_seq=3 ttl=63 time=3.564 ms
-84 bytes from 10.0.200.2 icmp_seq=4 ttl=63 time=3.685 ms
+84 bytes from 10.0.200.2 icmp_seq=1 ttl=63 time=139.539 ms
+84 bytes from 10.0.200.2 icmp_seq=2 ttl=63 time=4.075 ms
+84 bytes from 10.0.200.2 icmp_seq=3 ttl=63 time=3.728 ms
+84 bytes from 10.0.200.2 icmp_seq=4 ttl=63 time=3.818 ms
 
+client-3> trace 10.0.200.2    
+trace to 10.0.200.2, 8 hops max, press Ctrl+C to stop
+ 1   10.0.100.254   0.865 ms  0.608 ms  0.542 ms
+ 2   *10.0.200.2   3.961 ms (ICMP type:3, code:3, Destination port unreachable)
+ 
 client-3> show arp
 
-00:50:79:66:68:00  10.0.100.1 expires in 74 seconds 
-00:50:79:66:68:01  10.0.100.3 expires in 95 seconds 
-02:00:00:00:01:00  10.0.100.254 expires in 106 seconds 
+02:00:00:00:01:00  10.0.100.254 expires in 119 seconds 
+00:50:79:66:68:00  10.0.100.1 expires in 101 seconds 
+00:50:79:66:68:01  10.0.100.3 expires in 109 seconds 
 ```
 
 <br>
@@ -2125,37 +2207,41 @@ MTU         : 1500
 
 client-4> ping 10.0.100.1 -c 4
 
-84 bytes from 10.0.100.1 icmp_seq=1 ttl=64 time=4.706 ms
-84 bytes from 10.0.100.1 icmp_seq=2 ttl=64 time=3.692 ms
-84 bytes from 10.0.100.1 icmp_seq=3 ttl=64 time=3.745 ms
-84 bytes from 10.0.100.1 icmp_seq=4 ttl=64 time=3.955 ms
+84 bytes from 10.0.100.1 icmp_seq=1 ttl=64 time=2.940 ms
+84 bytes from 10.0.100.1 icmp_seq=2 ttl=64 time=3.249 ms
+84 bytes from 10.0.100.1 icmp_seq=3 ttl=64 time=3.333 ms
+84 bytes from 10.0.100.1 icmp_seq=4 ttl=64 time=4.515 ms
 
 client-4> ping 10.0.100.2 -c 4
 
-84 bytes from 10.0.100.2 icmp_seq=1 ttl=64 time=3.980 ms
-84 bytes from 10.0.100.2 icmp_seq=2 ttl=64 time=3.274 ms
-84 bytes from 10.0.100.2 icmp_seq=3 ttl=64 time=3.525 ms
-84 bytes from 10.0.100.2 icmp_seq=4 ttl=64 time=3.626 ms
+84 bytes from 10.0.100.2 icmp_seq=1 ttl=64 time=7.068 ms
+84 bytes from 10.0.100.2 icmp_seq=2 ttl=64 time=3.979 ms
+84 bytes from 10.0.100.2 icmp_seq=3 ttl=64 time=3.395 ms
+84 bytes from 10.0.100.2 icmp_seq=4 ttl=64 time=4.500 ms
 
 client-4> ping 10.0.200.1 -c 4
 
-84 bytes from 10.0.200.1 icmp_seq=1 ttl=63 time=6.366 ms
-84 bytes from 10.0.200.1 icmp_seq=2 ttl=63 time=4.547 ms
-84 bytes from 10.0.200.1 icmp_seq=3 ttl=63 time=3.735 ms
-84 bytes from 10.0.200.1 icmp_seq=4 ttl=63 time=5.035 ms
+84 bytes from 10.0.200.1 icmp_seq=1 ttl=63 time=6.541 ms
+84 bytes from 10.0.200.1 icmp_seq=2 ttl=63 time=4.659 ms
+84 bytes from 10.0.200.1 icmp_seq=3 ttl=63 time=3.639 ms
+84 bytes from 10.0.200.1 icmp_seq=4 ttl=63 time=3.971 ms
+
+client-4> trace 10.0.200.1
+trace to 10.0.200.1, 8 hops max, press Ctrl+C to stop
+ 1   10.0.100.254   2.329 ms  0.449 ms  0.827 ms
+ 2   *10.0.200.1   10.872 ms (ICMP type:3, code:3, Destination port unreachable)
 
 client-4> ping 10.0.200.2 -c 4
 
-84 bytes from 10.0.200.2 icmp_seq=1 ttl=63 time=1.518 ms
-84 bytes from 10.0.200.2 icmp_seq=2 ttl=63 time=1.075 ms
-84 bytes from 10.0.200.2 icmp_seq=3 ttl=63 time=0.973 ms
-84 bytes from 10.0.200.2 icmp_seq=4 ttl=63 time=1.305 ms
+84 bytes from 10.0.200.2 icmp_seq=1 ttl=63 time=4.442 ms
+84 bytes from 10.0.200.2 icmp_seq=2 ttl=63 time=1.198 ms
+84 bytes from 10.0.200.2 icmp_seq=3 ttl=63 time=1.235 ms
+84 bytes from 10.0.200.2 icmp_seq=4 ttl=63 time=1.498 ms
 
-client-4> show arp
-
-00:50:79:66:68:04  10.0.100.2 expires in 3 seconds 
-00:50:79:66:68:00  10.0.100.1 expires in 83 seconds 
-02:00:00:00:01:00  10.0.100.254 expires in 119 seconds 
+client-4> trace 10.0.200.2    
+trace to 10.0.200.2, 8 hops max, press Ctrl+C to stop
+ 1   10.0.100.254   0.765 ms  0.564 ms  0.492 ms
+ 2   *10.0.200.2   1.005 ms (ICMP type:3, code:3, Destination port unreachable)
 ```
 
 
@@ -2164,7 +2250,7 @@ client-4> show arp
 #### client-5
 
 ```
-client-5> show ip 
+client-5> show ip
 
 NAME        : client-5[1]
 IP/MASK     : 10.0.200.2/24
@@ -2177,36 +2263,52 @@ MTU         : 1500
 
 client-5> ping 10.0.100.1 -c 4
 
-84 bytes from 10.0.100.1 icmp_seq=1 ttl=63 time=8.811 ms
-84 bytes from 10.0.100.1 icmp_seq=2 ttl=63 time=3.481 ms
-84 bytes from 10.0.100.1 icmp_seq=3 ttl=63 time=4.476 ms
-84 bytes from 10.0.100.1 icmp_seq=4 ttl=63 time=3.752 ms
+84 bytes from 10.0.100.1 icmp_seq=1 ttl=63 time=10.471 ms
+84 bytes from 10.0.100.1 icmp_seq=2 ttl=63 time=3.907 ms
+84 bytes from 10.0.100.1 icmp_seq=3 ttl=63 time=3.746 ms
+84 bytes from 10.0.100.1 icmp_seq=4 ttl=63 time=3.794 ms
+
+client-5> trace 10.0.100.1
+trace to 10.0.100.1, 8 hops max, press Ctrl+C to stop
+ 1   10.0.200.254   1.019 ms  0.586 ms  0.607 ms
+ 2   *10.0.100.1   14.775 ms (ICMP type:3, code:3, Destination port unreachable)
 
 client-5> ping 10.0.100.2 -c 4
 
-84 bytes from 10.0.100.2 icmp_seq=1 ttl=61 time=6.434 ms
-84 bytes from 10.0.100.2 icmp_seq=2 ttl=61 time=3.309 ms
-84 bytes from 10.0.100.2 icmp_seq=3 ttl=61 time=3.770 ms
-84 bytes from 10.0.100.2 icmp_seq=4 ttl=61 time=3.249 ms
+84 bytes from 10.0.100.2 icmp_seq=1 ttl=63 time=7.059 ms
+84 bytes from 10.0.100.2 icmp_seq=2 ttl=63 time=3.740 ms
+84 bytes from 10.0.100.2 icmp_seq=3 ttl=63 time=3.499 ms
+84 bytes from 10.0.100.2 icmp_seq=4 ttl=63 time=4.997 ms
+
+client-5> trace 10.0.100.2    
+trace to 10.0.100.2, 8 hops max, press Ctrl+C to stop
+ 1   10.0.200.254   0.705 ms  0.503 ms  0.498 ms
+ 2   *10.0.100.2   4.356 ms (ICMP type:3, code:3, Destination port unreachable)
 
 client-5> ping 10.0.100.3 -c 4
 
-84 bytes from 10.0.100.3 icmp_seq=1 ttl=63 time=1.288 ms
-84 bytes from 10.0.100.3 icmp_seq=2 ttl=63 time=1.558 ms
-84 bytes from 10.0.100.3 icmp_seq=3 ttl=63 time=1.194 ms
-84 bytes from 10.0.100.3 icmp_seq=4 ttl=63 time=1.125 ms
+84 bytes from 10.0.100.3 icmp_seq=1 ttl=63 time=1.199 ms
+84 bytes from 10.0.100.3 icmp_seq=2 ttl=63 time=1.385 ms
+84 bytes from 10.0.100.3 icmp_seq=3 ttl=63 time=1.191 ms
+84 bytes from 10.0.100.3 icmp_seq=4 ttl=63 time=1.175 ms
+
+client-5> trace 10.0.100.3    
+trace to 10.0.100.3, 8 hops max, press Ctrl+C to stop
+ 1   10.0.200.254   0.688 ms  0.591 ms  0.511 ms
+ 2   *10.0.100.3   0.881 ms (ICMP type:3, code:3, Destination port unreachable)
 
 client-5> ping 10.0.200.1 -c 4
 
-84 bytes from 10.0.200.1 icmp_seq=1 ttl=64 time=4.025 ms
-84 bytes from 10.0.200.1 icmp_seq=2 ttl=64 time=3.882 ms
-84 bytes from 10.0.200.1 icmp_seq=3 ttl=64 time=3.796 ms
-84 bytes from 10.0.200.1 icmp_seq=4 ttl=64 time=6.705 ms
+84 bytes from 10.0.200.1 icmp_seq=1 ttl=64 time=5.060 ms
+84 bytes from 10.0.200.1 icmp_seq=2 ttl=64 time=3.762 ms
+84 bytes from 10.0.200.1 icmp_seq=3 ttl=64 time=3.572 ms
+84 bytes from 10.0.200.1 icmp_seq=4 ttl=64 time=3.700 ms
 
-client-5> show arp
 
-02:00:00:00:02:00  10.0.200.254 expires in 99 seconds 
-00:50:79:66:68:02  10.0.200.1 expires in 113 seconds 
+client-5> show arp        
+
+00:50:79:66:68:02  10.0.200.1 expires in 21 seconds 
+02:00:00:00:02:00  10.0.200.254 expires in 103 seconds 
 ```
 
 
