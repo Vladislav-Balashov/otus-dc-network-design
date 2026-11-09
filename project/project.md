@@ -20,8 +20,8 @@
 ## Cхема сети
 
 
-
 ![EVPN-VXLAN topology](./vyos-evpn.drawio.svg)
+
 
 <br>
 
@@ -2318,4 +2318,60 @@ client-5> show arp
 ```
 
 
+<br>
+
+## Проверка связности при потере линка между leaf-1 и spine-1
+
+Пинг от client-1 (`10.0.100.1`) за leaf-1 до client-5 (`10.0.200.2`) за leaf-3 во время отключения линка между leaf-1 и spine-1 (потеря одного пакета):
+
+```
+client-1> show ip               
+
+NAME        : client-1[1]
+IP/MASK     : 10.0.100.1/24
+GATEWAY     : 10.0.100.254
+DNS         : 
+MAC         : 00:50:79:66:68:00
+LPORT       : 20152
+RHOST:PORT  : 127.0.0.1:20153
+MTU         : 1500
+
+client-1> ping 10.0.200.2 -c 100
+
+84 bytes from 10.0.200.2 icmp_seq=1 ttl=63 time=4.997 ms
+84 bytes from 10.0.200.2 icmp_seq=2 ttl=63 time=4.342 ms
+84 bytes from 10.0.200.2 icmp_seq=3 ttl=63 time=3.832 ms
+84 bytes from 10.0.200.2 icmp_seq=4 ttl=63 time=4.625 ms
+84 bytes from 10.0.200.2 icmp_seq=5 ttl=63 time=5.032 ms
+84 bytes from 10.0.200.2 icmp_seq=6 ttl=63 time=5.831 ms
+84 bytes from 10.0.200.2 icmp_seq=7 ttl=63 time=5.648 ms
+84 bytes from 10.0.200.2 icmp_seq=8 ttl=63 time=5.271 ms
+84 bytes from 10.0.200.2 icmp_seq=9 ttl=63 time=5.349 ms
+84 bytes from 10.0.200.2 icmp_seq=10 ttl=63 time=8.064 ms
+10.0.200.2 icmp_seq=11 timeout
+84 bytes from 10.0.200.2 icmp_seq=12 ttl=63 time=4.823 ms
+84 bytes from 10.0.200.2 icmp_seq=13 ttl=63 time=5.367 ms
+84 bytes from 10.0.200.2 icmp_seq=14 ttl=63 time=4.990 ms
+84 bytes from 10.0.200.2 icmp_seq=15 ttl=63 time=4.383 ms
+84 bytes from 10.0.200.2 icmp_seq=16 ttl=63 time=3.453 ms
+84 bytes from 10.0.200.2 icmp_seq=17 ttl=63 time=5.110 ms
+84 bytes from 10.0.200.2 icmp_seq=18 ttl=63 time=4.956 ms
+84 bytes from 10.0.200.2 icmp_seq=19 ttl=63 time=4.375 ms
+```
+
+<br>
+При отключении линка между leaf-1 и spine-1 маршрут до leaf-3 перестроился через spine-2
+
+```
+vyos@leaf-1:~$ show interfaces | match ' eth0 '
+vyos@leaf-1:~$ show interfaces | match 'eth0 '
+eth0         -                0c:99:55:40:00:00  default   9100  u/D    to spine-1
+vyos@leaf-1:~$ show interfaces | match 'eth1 '
+eth1         -                0c:99:55:40:00:01  default   9100  u/u    to spine-2
+vyos@leaf-1:~$ show ip route 10.0.0.5
+Routing entry for 10.0.0.5/32
+  Known via "bgp", distance 20, metric 0, best
+  Last update 00:03:06 ago
+  * fe80::e42:b9ff:fe7c:0, via eth1, weight 1
+```
 
